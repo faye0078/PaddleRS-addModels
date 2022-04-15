@@ -36,7 +36,7 @@ from .utils import seg_metrics as metrics
 
 __all__ = [
     "CDNet", "FCEarlyFusion", "FCSiamConc", "FCSiamDiff", "STANet", "BIT",
-    "SNUNet", "DSIFN", "DSAMNet", "ChangeStar"
+    "SNUNet", "DSIFN", "DSAMNet", "ChangeStar", "HRNet"
 ]
 
 
@@ -893,3 +893,16 @@ class ChangeStar(BaseChangeDetector):
             }
         else:
             raise ValueError(f"Currently `use_mixed_loss` must be set to False for {self.__class__}")
+
+class HRNet(BaseChangeDetector):
+    def __init__(self,
+                 in_channels=3,
+                 num_classes=2,
+                 use_mixed_loss=False,
+                 **params):
+        params.update({'in_channels': in_channels})
+        super(HRNet, self).__init__(
+            model_name='HRNet',
+            num_classes=num_classes,
+            use_mixed_loss=use_mixed_loss,
+            **params)
