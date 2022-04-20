@@ -783,9 +783,9 @@ def HRNet_W44(**kwargs):
 
 
 @manager.BACKBONES.add_component
-def HRNet_W48(**kwargs):
+def HRNet_W48(in_channels):
     model = HRNet(
-        in_channels = kwargs.get('in_channels'),
+        in_channels=in_channels,
         stage1_num_modules=1,
         stage1_num_blocks=[4],
         stage1_num_channels=[64],
@@ -797,8 +797,7 @@ def HRNet_W48(**kwargs):
         stage3_num_channels=[48, 96, 192],
         stage4_num_modules=3,
         stage4_num_blocks=[4, 4, 4, 4],
-        stage4_num_channels=[48, 96, 192, 384],
-        **kwargs)
+        stage4_num_channels=[48, 96, 192, 384])
     return model
 
 

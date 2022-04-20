@@ -348,10 +348,10 @@ class Backbone(nn.Layer, KaimingInitMixin):
                  out_ch=32,
                  arch='resnet18',
                  pretrained=True,
-                 n_stages=5):
+                 n_stages=5,
+                 expand=1):
         super(Backbone, self).__init__()
 
-        expand = 1
         strides = (2, 1, 2, 1, 1)
         if arch == 'resnet18':
             self.resnet = resnet.resnet18(
@@ -360,6 +360,11 @@ class Backbone(nn.Layer, KaimingInitMixin):
                 norm_layer=get_norm_layer())
         elif arch == 'resnet34':
             self.resnet = resnet.resnet34(
+                pretrained=pretrained,
+                strides=strides,
+                norm_layer=get_norm_layer())
+        elif arch == 'resnet50':
+            self.resnet = resnet.resnet50(
                 pretrained=pretrained,
                 strides=strides,
                 norm_layer=get_norm_layer())
