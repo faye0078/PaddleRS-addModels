@@ -39,7 +39,7 @@ __all__ = [
     "RandomResizeByShort", "ResizeByLong", "RandomHorizontalFlip",
     "RandomVerticalFlip", "Normalize", "CenterCrop", "RandomCrop",
     "RandomScaleAspect", "RandomExpand", "Padding", "MixupImage",
-    "RandomDistort", "RandomBlur", "RandomSwap", "Defogging", "DimReducing",
+    "RandomDistort", "RandomBlur", "RandomSwap", "Defogging", "DimReducing", "RandomGasussNoise",
     "BandSelecting", "ArrangeSegmenter", "ArrangeChangeDetector",
     "ArrangeClassifier", "ArrangeDetector"
 ]
@@ -1338,22 +1338,22 @@ class RandomDistort(Transform):
             return sample
 
         sample['image'] = self.apply_brightness(sample['image'])
-        if 'image2' in sample:
-            sample['image2'] = self.apply_brightness(sample['image2'])
+        # if 'image2' in sample:
+        #     sample['image2'] = self.apply_brightness(sample['image2'])
         mode = np.random.randint(0, 2)
         if mode:
             sample['image'] = self.apply_contrast(sample['image'])
-            if 'image2' in sample:
-                sample['image2'] = self.apply_contrast(sample['image2'])
+            # if 'image2' in sample:
+            #     sample['image2'] = self.apply_contrast(sample['image2'])
         sample['image'] = self.apply_saturation(sample['image'])
         sample['image'] = self.apply_hue(sample['image'])
-        if 'image2' in sample:
-            sample['image2'] = self.apply_saturation(sample['image2'])
-            sample['image2'] = self.apply_hue(sample['image2'])
+        # if 'image2' in sample:
+        #     sample['image2'] = self.apply_saturation(sample['image2'])
+        #     sample['image2'] = self.apply_hue(sample['image2'])
         if not mode:
             sample['image'] = self.apply_contrast(sample['image'])
-            if 'image2' in sample:
-                sample['image2'] = self.apply_contrast(sample['image2'])
+            # if 'image2' in sample:
+            #     sample['image2'] = self.apply_contrast(sample['image2'])
 
         if self.shuffle_channel:
             if np.random.randint(0, 2):
@@ -1395,10 +1395,43 @@ class RandomBlur(Transform):
                 if radius > 9:
                     radius = 9
                 sample['image'] = self.apply_im(sample['image'], radius)
-                if 'image2' in sample:
-                    sample['image2'] = self.apply_im(sample['image2'], radius)
+                # if 'image2' in sample:
+                #     sample['image2'] = self.apply_im(sample['image2'], radius)
         return sample
 
+class RandomGasussNoise(Transform):
+    """
+    Randomly blur input image(s).
+
+    Args:
+        prob (float): Probability of blurring.
+    """
+
+    def __init__(self, prob=0.1):
+        super(RandomGasussNoise, self).__init__()
+        self.prob = prob
+
+    def apply_im(self, image, mu=0.0, sigma=0.1):
+        noise = np.random.normal(mu, sigma, image.shape)
+        gauss_noise = image + noise
+        return gauss_noise
+
+    def apply(self, sample):
+        if self.prob <= 0:
+            n = 0
+        elif self.prob >= 1:
+            n = 1
+        else:
+            n = int(1.0 / self.prob)
+        if n > 0:
+            if np.random.randint(0, n) == 0:
+                sigma = np.random.randint(10, 25)
+                if sigma > 25:
+                    sigma = 25
+                sample['image'] = self.apply_im(sample['image'], mu=0, sigma=sigma)
+                # if 'image2' in sample:
+                #     sample['image2'] = self.apply_im(sample['image2'], mu=0, sigma=sigma)
+        return sample
 
 class Defogging(Transform):
     """

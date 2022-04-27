@@ -351,7 +351,6 @@ class Backbone(nn.Layer, KaimingInitMixin):
                  n_stages=5):
         super(Backbone, self).__init__()
 
-        expand = 1
         strides = (2, 1, 2, 1, 1)
         if arch == 'resnet18':
             self.resnet = resnet.resnet18(
@@ -369,11 +368,11 @@ class Backbone(nn.Layer, KaimingInitMixin):
         self.n_stages = n_stages
 
         if self.n_stages == 5:
-            itm_ch = 512 * expand
+            itm_ch = 512
         elif self.n_stages == 4:
-            itm_ch = 256 * expand
+            itm_ch = 256
         elif self.n_stages == 3:
-            itm_ch = 128 * expand
+            itm_ch = 128
         else:
             raise ValueError
 
