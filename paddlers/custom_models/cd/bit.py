@@ -16,6 +16,7 @@ import paddle
 import paddle.nn as nn
 import paddle.nn.functional as F
 from paddle.nn.initializer import Normal
+from .backbones.hrnet import HRNet_W48
 
 from .backbones import resnet
 from .layers import Conv3x3, Conv1x1, get_norm_layer, Identity
@@ -351,6 +352,8 @@ class Backbone(nn.Layer, KaimingInitMixin):
                  n_stages=5):
         super(Backbone, self).__init__()
 
+        self.arch = arch
+
         strides = (2, 1, 2, 1, 1)
         if arch == 'resnet18':
             self.resnet = resnet.resnet18(
@@ -362,24 +365,29 @@ class Backbone(nn.Layer, KaimingInitMixin):
                 pretrained=pretrained,
                 strides=strides,
                 norm_layer=get_norm_layer())
+        elif arch == 'hrnet':
+            self.hrnet = HRNet_W48(in_channels=in_ch)
         else:
             raise ValueError
 
         self.n_stages = n_stages
 
-        if self.n_stages == 5:
-            itm_ch = 512
-        elif self.n_stages == 4:
-            itm_ch = 256
-        elif self.n_stages == 3:
-            itm_ch = 128
-        else:
-            raise ValueError
+        if 'hrent' in arch:
+            itm_ch = 720
+
+        if 'resnet' in arch:
+            if self.n_stages == 5:
+                itm_ch = 512
+            elif self.n_stages == 4:
+                itm_ch = 256
+            elif self.n_stages == 3:
+                itm_ch = 128
+            else:
+                raise ValueError
+            self._trim_resnet()
 
         self.upsample = nn.Upsample(scale_factor=2)
         self.conv_out = Conv3x3(itm_ch, out_ch)
-
-        self._trim_resnet()
 
         if in_ch != 3:
             self.resnet.conv1 = nn.Conv2D(
@@ -389,19 +397,24 @@ class Backbone(nn.Layer, KaimingInitMixin):
             self.init_weight()
 
     def forward(self, x):
-        y = self.resnet.conv1(x)
-        y = self.resnet.bn1(y)
-        y = self.resnet.relu(y)
-        y = self.resnet.maxpool(y)
+        if 'resnet' in self.arch:
+            y = self.resnet.conv1(x)
+            y = self.resnet.bn1(y)
+            y = self.resnet.relu(y)
+            y = self.resnet.maxpool(y)
 
-        y = self.resnet.layer1(y)
-        y = self.resnet.layer2(y)
-        y = self.resnet.layer3(y)
-        y = self.resnet.layer4(y)
+            y = self.resnet.layer1(y)
+            y = self.resnet.layer2(y)
+            y = self.resnet.layer3(y)
+            y = self.resnet.layer4(y)
 
-        y = self.upsample(y)
+            y = self.upsample(y)
 
-        return self.conv_out(y)
+            return self.conv_out(y)
+        elif 'hrnet' in self.arch:
+            y = self.hrnet(x)
+            print(y[0].shape)
+            return self.conv_out(y[0])
 
     def _trim_resnet(self):
         if self.n_stages > 5:
