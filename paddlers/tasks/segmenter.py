@@ -31,7 +31,7 @@ from .utils import seg_metrics as metrics
 from paddlers.utils.checkpoint import seg_pretrain_weights_dict
 from paddlers.transforms import ImgDecoder, Resize
 
-__all__ = ["UNet", "DeepLabV3P", "FastSCNN", "HRNet", "BiSeNetV2", "FarSeg"]
+__all__ = ["UNet", "DeepLabV3P", "FastSCNN", "HRNet", "BiSeNetV2", "FarSeg", "DNASSeg"]
 
 
 class BaseSegmenter(BaseModel):
@@ -775,6 +775,22 @@ class FarSeg(BaseSegmenter):
     def __init__(self, num_classes=2, use_mixed_loss=False, **params):
         super(FarSeg, self).__init__(
             model_name='FarSeg',
+            num_classes=num_classes,
+            use_mixed_loss=use_mixed_loss,
+            **params)
+
+class DNASSeg(BaseSegmenter):
+    def __init__(self, layers, depth, connections, cell_arch, num_classes=2, base_multiplier=40, use_mixed_loss=False, **params):
+
+        params.update({
+            'layers': layers,
+            'depth': depth,
+            'connections': connections,
+            'cell_arch': cell_arch,
+            'base_multiplier': base_multiplier,
+        })
+        super(DNASSeg, self).__init__(
+            model_name='DNAS',
             num_classes=num_classes,
             use_mixed_loss=use_mixed_loss,
             **params)
